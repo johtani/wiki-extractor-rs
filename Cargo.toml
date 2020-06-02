@@ -1,0 +1,18 @@
+[package]
+name = "wiki-extractor"
+version = "0.1.0"
+authors = ["Jun Ohtani <johtani@gmail.com>"]
+edition = "2018"
+description = "Wikimedia data extractor. Extract JSON Format."
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+bzip2 = "0.3.3"
+parse_wiki_text = "0.1.5"
+xml-rs = "0.8.0"
+
+
+[[bin]]
+name = "wiki-extractor"
+path = "src/main.rs"
