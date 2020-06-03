@@ -1,5 +1,5 @@
 use crate::parser::common_parser::parse_text_only;
-use log::debug;
+use log::{debug, trace};
 use parse_wiki_text::{Node, Parameter};
 
 pub enum TemplateType {
@@ -15,6 +15,7 @@ pub fn parse_template_type(nodes: &Vec<Node>) -> TemplateType {
     let name = parse_text_only(nodes);
     let template_type = match name.as_str() {
         "lang" => TemplateType::Lang,
+        "lang-en" => TemplateType::Lang,
         "Redirect" => TemplateType::Redirect,
         "Otheruses" => TemplateType::Otheruses,
         "仮リンク" => TemplateType::TemporaryLink,
@@ -35,7 +36,10 @@ pub fn parse_template(name: &Vec<Node>, parameters: &Vec<Parameter>) -> Option<S
         TemplateType::Unicode => Some(get_temporary_link_template_text(&parameters)),
         TemplateType::Otheruses => None,
         TemplateType::Redirect => None,
-        TemplateType::Unknown => None,
+        TemplateType::Unknown => {
+            trace!("Params: [{:?}]", parameters);
+            None
+        }
     };
 }
 
@@ -43,7 +47,8 @@ pub fn get_lang_template_text(nodes: &Vec<Parameter>) -> String {
     let str = if nodes.len() >= 2 {
         parse_text_only(&nodes.get(1).unwrap().value)
     } else {
-        panic!(format!("Unexpected value... {:?}", nodes));
+        parse_text_only(&nodes.get(0).unwrap().value)
+        //panic!(format!("Unexpected value... {:?}", nodes));
     };
     return str;
 }

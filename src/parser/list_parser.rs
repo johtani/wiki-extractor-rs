@@ -1,9 +1,9 @@
 use crate::parser::common_parser::{extract_external_link_text, extract_link_text};
 use crate::parser::model::Document;
-use parse_wiki_text::{ListItem, Node};
+use crate::parser::template_parser::parse_template;
+use log::trace;
+use parse_wiki_text::{DefinitionListItem, DefinitionListItemType, ListItem, Node};
 
-// TODO need handling order / unorder / definition
-// TODO being able to call recursively -Bitward
 pub fn parse_items(items: Vec<ListItem>, doc: &mut Document, indent: u8) -> Vec<String> {
     let mut parsed_items = vec![];
     for item in items {
@@ -32,7 +32,20 @@ pub fn parse_items(items: Vec<ListItem>, doc: &mut Document, indent: u8) -> Vec<
                     let inner_items = parse_order_items(items, doc, indent + 1);
                     indent_items(indent, &mut parsed_item, inner_items);
                 }
-                _ => {}
+                Node::DefinitionList { items, .. } => {
+                    let inner_items = parse_definition_items(items, doc, indent + 1);
+                    indent_items(indent, &mut parsed_item, inner_items);
+                }
+                Node::Template {
+                    name, parameters, ..
+                } => {
+                    if let Some(template) = parse_template(&name, &parameters) {
+                        parsed_item.push_str(template.as_str());
+                    }
+                }
+                _ => {
+                    trace!("ぶ    {:?}", node);
+                }
             }
         }
         parsed_items.push(parsed_item);
@@ -65,7 +78,20 @@ pub fn parse_order_items(items: Vec<ListItem>, doc: &mut Document, indent: u8) -
                     let inner_items = parse_order_items(items, doc, indent + 1);
                     indent_items(indent, &mut parsed_item, inner_items);
                 }
-                _ => {}
+                Node::DefinitionList { items, .. } => {
+                    let inner_items = parse_definition_items(items, doc, indent + 1);
+                    indent_items(indent, &mut parsed_item, inner_items);
+                }
+                Node::Template {
+                    name, parameters, ..
+                } => {
+                    if let Some(template) = parse_template(&name, &parameters) {
+                        parsed_item.push_str(template.as_str());
+                    }
+                }
+                _ => {
+                    trace!("り    {:?}", node);
+                }
             }
         }
         parsed_items.push(parsed_item);
@@ -81,4 +107,60 @@ fn indent_items(indent: u8, parsed_item: &mut String, inner_items: Vec<String>) 
         }
         parsed_item.push_str(inner_item.as_str());
     }
+}
+
+pub fn parse_definition_items(
+    items: Vec<DefinitionListItem>,
+    doc: &mut Document,
+    indent: u8,
+) -> Vec<String> {
+    let mut parsed_items = vec![];
+    for item in items {
+        let mut parsed_item = String::new();
+        if let DefinitionListItemType::Details = item.type_ {
+            parsed_item.push_str("  ");
+        }
+        for node in item.nodes {
+            match node {
+                Node::Text { value, .. } => {
+                    parsed_item.push_str(value);
+                }
+                Node::CharacterEntity { character, .. } => parsed_item.push(character),
+                Node::Link { target, text, .. } => {
+                    let link_text = extract_link_text(target, &text);
+                    parsed_item.push_str(link_text.clone_text().as_str());
+                    doc.links.push(link_text);
+                }
+                Node::ExternalLink { nodes, .. } => {
+                    let link_text = extract_external_link_text(&nodes);
+                    parsed_item.push_str(link_text.clone_text().as_str());
+                    doc.links.push(link_text);
+                }
+                Node::UnorderedList { items, .. } => {
+                    let inner_items = parse_items(items, doc, indent + 1);
+                    indent_items(indent, &mut parsed_item, inner_items);
+                }
+                Node::OrderedList { items, .. } => {
+                    let inner_items = parse_order_items(items, doc, indent + 1);
+                    indent_items(indent, &mut parsed_item, inner_items);
+                }
+                Node::DefinitionList { items, .. } => {
+                    let inner_items = parse_definition_items(items, doc, indent + 1);
+                    indent_items(indent, &mut parsed_item, inner_items);
+                }
+                Node::Template {
+                    name, parameters, ..
+                } => {
+                    if let Some(template) = parse_template(&name, &parameters) {
+                        parsed_item.push_str(template.as_str());
+                    }
+                }
+                _ => {
+                    trace!("で    {:?}", node);
+                }
+            }
+        }
+        parsed_items.push(parsed_item);
+    }
+    return parsed_items;
 }

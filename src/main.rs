@@ -8,13 +8,15 @@ use wiki_extractor::output::output_json::OutputJson;
 use wiki_extractor::parser::common_parser::{
     extract_external_link_text, extract_heading_text, extract_image, extract_link_text,
 };
-use wiki_extractor::parser::list_parser::{parse_items, parse_order_items};
+use wiki_extractor::parser::list_parser::{parse_definition_items, parse_items, parse_order_items};
 use wiki_extractor::parser::model::Document;
 use wiki_extractor::parser::template_parser::parse_template;
 use wiki_extractor::wiki_page_iterator::WikiPageIterator;
 
 fn main() {
-    env::set_var("RUST_LOG", "info");
+    if env::var("RUST_LOG").is_err() {
+        env::set_var("RUST_LOG", "info");
+    }
     env_logger::init();
 
     //let path = "/Users/johtani/tmp/wiki/jawiki-latest-pages-articles.xml.bz2";
@@ -99,11 +101,16 @@ fn main() {
                             page_content.push_str(parsed_item.as_str());
                         }
                     }
+                    Node::DefinitionList { items, .. } => {
+                        for parsed_item in parse_definition_items(items, &mut doc, 1) {
+                            page_content.push_str("\n  ");
+                            page_content.push_str(parsed_item.as_str());
+                        }
+                    }
                     // TODO contentをパラグラフごとに分割するなら、ここで区切る?
                     Node::ParagraphBreak { .. } => {
                         page_content.push_str("\n");
                     }
-
                     Node::Template {
                         name, parameters, ..
                     } => {
@@ -111,10 +118,7 @@ fn main() {
                             page_content.push_str(template.as_str());
                         }
                     }
-                    //
-                    // Node::DefinitionList { .. } => {
-                    //     trace!("あ    {:?}", node);
-                    // }
+
                     // // TODO Need extracte cells
                     // Node::Table { .. } => {}
                     //
