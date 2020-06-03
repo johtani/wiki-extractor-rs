@@ -1,4 +1,4 @@
-use crate::wiki_page_iterator::parse_text_only;
+use crate::parser::common_parser::parse_text_only;
 use parse_wiki_text::{Node, Parameter};
 
 pub enum TemplateType {

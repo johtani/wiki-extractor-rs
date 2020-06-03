@@ -1,21 +1,24 @@
+use bzip2::read::BzDecoder;
 use parse_wiki_text::{Configuration, Node};
 use std::fs::File;
-use std::io::BufReader;
-use std::str::FromStr;
-use wiki_extractor::list_parser::{parse_items, parse_order_items};
-use wiki_extractor::template_parser::{
-    get_lang_template_text, get_temporary_link_template_text, parse_template, parse_template_type,
-    TemplateType,
+use std::io::{BufReader, Read};
+use wiki_extractor::output::output_json::OutputJson;
+use wiki_extractor::parser::common_parser::{
+    extract_external_link_text, extract_heading_text, extract_image, extract_link_text,
 };
-use wiki_extractor::wiki_page_iterator::{
-    extract_heading_text, extract_image, extract_link_text, parse_text_only, Document, Link,
-};
-use wiki_extractor::wiki_page_iterator::{Image, ImageType, Page, Text, WikiPageIterator};
+use wiki_extractor::parser::list_parser::{parse_items, parse_order_items};
+use wiki_extractor::parser::model::Document;
+use wiki_extractor::parser::template_parser::parse_template;
+use wiki_extractor::wiki_page_iterator::WikiPageIterator;
 
 fn main() {
-    let path = "/Users/johtani/tmp/wiki/sample.xml";
+    let path = "/Users/johtani/tmp/wiki/sample_bz2.xml.bz2";
+    //without extension
+    let output_path = "./test_dir/output";
     let file = File::open(path).unwrap();
-    let buf = BufReader::new(file);
+    let buf = BzDecoder::new(file);
+    //let buf = BufReader::new(file);
+    let mut output = OutputJson::new(output_path, 100);
 
     //TODO need a flag to skip Wikipedia special page that starts "Wikipedia:" in title.
     let _xml_parser = WikiPageIterator::new(buf);
@@ -30,7 +33,10 @@ fn main() {
             let result = Configuration::default().parse(page.raw_content.as_str());
             let mut page_content = String::new();
             let mut doc: Document = Document {
-                page: &page,
+                id: page.id.to_string(),
+                title: page.title.to_string(),
+                timestamp: page.timestamp.to_string(),
+                revision_id: page.revision_id.to_string(),
                 contents: vec![],
                 categories: vec![],
                 headings: vec![],
@@ -41,7 +47,6 @@ fn main() {
 
             for node in result.nodes {
                 //match node {}
-                println!("あ    {:?}", node);
                 match node {
                     Node::Category { target, .. } => doc
                         .categories
@@ -60,9 +65,10 @@ fn main() {
                         let heading = extract_heading_text(&nodes);
                         add_heading(heading.as_str(), &mut page_content, &mut doc);
                     }
-
-                    Node::ExternalLink { .. } => {
-                        //TODO
+                    Node::ExternalLink { nodes, .. } => {
+                        let link_text = extract_external_link_text(&nodes);
+                        page_content.push_str(link_text.clone_text().as_str());
+                        doc.links.push(link_text);
                     }
                     Node::Image { target, text, .. } => {
                         // need to parse recursive in text
@@ -86,20 +92,11 @@ fn main() {
                             page_content.push_str(parsed_item.as_str());
                         }
                     }
-                    Node::DefinitionList { .. } => {
-                        println!("あ    {:?}", node);
-                    }
                     // TODO contentをパラグラフごとに分割するなら、ここで区切る?
                     Node::ParagraphBreak { .. } => {
                         page_content.push_str("\n");
                     }
 
-                    // TODO Need extracte cells
-                    Node::Table { .. } => {}
-
-                    Node::Tag { .. } => {}
-
-                    // TODO template combination?
                     Node::Template {
                         name, parameters, ..
                     } => {
@@ -107,36 +104,49 @@ fn main() {
                             page_content.push_str(template.as_str());
                         }
                     }
-                    Node::Redirect { .. } => {}
-                    Node::Parameter { .. } => {}
-                    //TODO
-                    Node::HorizontalDivider { .. } => {}
-                    Node::MagicWord { .. } => {}
-                    Node::Preformatted { .. } => {}
-
+                    //
+                    // Node::DefinitionList { .. } => {
+                    //     println!("あ    {:?}", node);
+                    // }
+                    // // TODO Need extracte cells
+                    // Node::Table { .. } => {}
+                    //
+                    // Node::Tag { .. } => {}
+                    //
+                    // // TODO template combination?
+                    // Node::Redirect { .. } => {}
+                    // Node::Parameter { .. } => {}
+                    // //TODO
+                    // Node::HorizontalDivider { .. } => {}
+                    // Node::MagicWord { .. } => {}
+                    // Node::Preformatted { .. } => {}
+                    //
                     // TODO maybe NO-OP
                     Node::StartTag { .. } => {}
                     Node::EndTag { .. } => {}
-
                     //NO-OP
                     Node::Bold { .. } => {}
                     Node::BoldItalic { .. } => {}
                     Node::Italic { .. } => {}
                     Node::Comment { .. } => {}
+                    _ => {
+                        println!("あ    {:?}", node);
+                    }
                 }
             }
 
             if result.warnings.is_empty() == false {
                 for warning in result.warnings {
                     println!(
-                        "い    [WARN] {} start:{} - end:{}",
+                        "[WARN] {} start:{} - end:{}",
                         warning.message, warning.start, warning.end
                     );
                 }
             }
 
             doc.contents.push(page_content.to_string());
-            print_doc(doc);
+            output.output(&doc);
+            print_doc(&doc);
         } else {
             println!(
                 "Skip : Id[{}] - Title:[{}] - Timestamp:[{}] - meta?:[{}]",
@@ -144,25 +154,26 @@ fn main() {
             );
         }
     }
+    output.flush();
+    println!("Finish wiki-extractor. ");
+}
 
-    fn print_doc(doc: Document) {
-        println!(
-            "# of sections & contents. [{}] = [{}]",
-            doc.headings.len(),
-            doc.contents.len()
-        );
-        println!("Page::id  {}", doc.page.id);
-        println!("Page::title  {}", doc.page.title);
-        println!("Content\n {}", doc.contents.join("\n"));
-        println!("Categories\n {}", doc.categories.join("\n"));
-        //println!("Images {:?}", doc.images);
-        //println!("Links {:?}", doc.links)
-    }
+// for test
+fn print_doc(doc: &Document) {
+    println!(
+        "# of sections & contents. [{}] = [{}]",
+        doc.headings.len(),
+        doc.contents.len()
+    );
+    println!("Page::id  {}", doc.id);
+    println!("Page::title  {}", doc.title);
+    println!("Content \n{}", doc.contents.join("\n"));
+    println!("Categories \n{}", doc.categories.join("\n"));
+    //println!("Images {:?}", doc.images);
+    //println!("Links {:?}", doc.links)
 }
 
 fn add_heading(heading: &str, page_content: &mut String, doc: &mut Document) {
-    let page: Page;
-
     doc.headings.push(heading.to_string());
     page_content.push_str(heading);
     page_content.push('\n');

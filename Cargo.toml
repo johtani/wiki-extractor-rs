@@ -11,6 +11,9 @@ description = "Wikimedia data extractor. Extract JSON Format."
 bzip2 = "0.3.3"
 parse_wiki_text = "0.1.5"
 xml-rs = "0.8.0"
+serde = "1.0.104"
+serde_derive = "1.0.104"
+serde_json = "1.0.47"
 
 
 [[bin]]

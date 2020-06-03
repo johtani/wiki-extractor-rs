@@ -1,4 +1,5 @@
-use crate::wiki_page_iterator::{extract_link_text, Document};
+use crate::parser::common_parser::{extract_external_link_text, extract_link_text};
+use crate::parser::model::Document;
 use parse_wiki_text::{ListItem, Node};
 
 // TODO need handling order / unorder / definition
@@ -18,15 +19,18 @@ pub fn parse_items(items: Vec<ListItem>, doc: &mut Document, indent: u8) -> Vec<
                     parsed_item.push_str(link_text.clone_text().as_str());
                     doc.links.push(link_text);
                 }
-                Node::OrderedList { items, .. } => {
+                Node::ExternalLink { nodes, .. } => {
+                    let link_text = extract_external_link_text(&nodes);
+                    parsed_item.push_str(link_text.clone_text().as_str());
+                    doc.links.push(link_text);
+                }
+                Node::UnorderedList { items, .. } => {
                     let inner_items = parse_items(items, doc, indent + 1);
-                    for inner_item in inner_items {
-                        parsed_item.push_str("\n  ");
-                        for i in 0..indent {
-                            parsed_item.push_str("  ");
-                        }
-                        parsed_item.push_str(inner_item.as_str());
-                    }
+                    indent_items(indent, &mut parsed_item, inner_items);
+                }
+                Node::OrderedList { items, .. } => {
+                    let inner_items = parse_order_items(items, doc, indent + 1);
+                    indent_items(indent, &mut parsed_item, inner_items);
                 }
                 _ => {}
             }
@@ -55,23 +59,11 @@ pub fn parse_order_items(items: Vec<ListItem>, doc: &mut Document, indent: u8) -
                 }
                 Node::UnorderedList { items, .. } => {
                     let inner_items = parse_items(items, doc, indent + 1);
-                    for inner_item in inner_items {
-                        parsed_item.push_str("\n  ");
-                        for i in 0..indent {
-                            parsed_item.push_str("  ");
-                        }
-                        parsed_item.push_str(inner_item.as_str());
-                    }
+                    indent_items(indent, &mut parsed_item, inner_items)
                 }
                 Node::OrderedList { items, .. } => {
                     let inner_items = parse_order_items(items, doc, indent + 1);
-                    for inner_item in inner_items {
-                        parsed_item.push_str("\n  ");
-                        for i in 0..indent {
-                            parsed_item.push_str("  ");
-                        }
-                        parsed_item.push_str(inner_item.as_str());
-                    }
+                    indent_items(indent, &mut parsed_item, inner_items);
                 }
                 _ => {}
             }
@@ -79,4 +71,14 @@ pub fn parse_order_items(items: Vec<ListItem>, doc: &mut Document, indent: u8) -
         parsed_items.push(parsed_item);
     }
     return parsed_items;
+}
+
+fn indent_items(indent: u8, parsed_item: &mut String, inner_items: Vec<String>) {
+    for inner_item in inner_items {
+        parsed_item.push_str("\n  ");
+        for _i in 0..indent {
+            parsed_item.push_str("  ");
+        }
+        parsed_item.push_str(inner_item.as_str());
+    }
 }
