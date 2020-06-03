@@ -1,5 +1,5 @@
 use crate::parser::common_parser::parse_text_only;
-use log::info;
+use log::debug;
 use parse_wiki_text::{Node, Parameter};
 
 pub enum TemplateType {
@@ -21,7 +21,7 @@ pub fn parse_template_type(nodes: &Vec<Node>) -> TemplateType {
         "unicode" => TemplateType::Unicode,
         "IPA" => TemplateType::Unicode,
         _ => {
-            info!("[WARN] Unknown Template Type... [{}]", name);
+            debug!("[WARN] Unknown Template Type... [{}]", name);
             TemplateType::Unknown
         }
     };
@@ -40,7 +40,7 @@ pub fn parse_template(name: &Vec<Node>, parameters: &Vec<Parameter>) -> Option<S
 }
 
 pub fn get_lang_template_text(nodes: &Vec<Parameter>) -> String {
-    let str = if nodes.len() == 2 {
+    let str = if nodes.len() >= 2 {
         parse_text_only(&nodes.get(1).unwrap().value)
     } else {
         panic!(format!("Unexpected value... {:?}", nodes));

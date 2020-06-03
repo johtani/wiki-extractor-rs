@@ -1,3 +1,4 @@
+use log::warn;
 use serde_derive::{Deserialize, Serialize};
 use std::str::FromStr;
 
@@ -24,10 +25,13 @@ impl FromStr for ImageType {
     type Err = ();
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "File" => Ok(ImageType::File),
-            "Image" => Ok(ImageType::Image),
-            _ => Err(()),
+        match s.to_ascii_lowercase().as_str() {
+            "file" => Ok(ImageType::File),
+            "image" => Ok(ImageType::Image),
+            _ => {
+                warn!("Unexpected Image Type: [{}]", s);
+                Err(())
+            }
         }
     }
 }

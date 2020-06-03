@@ -1,6 +1,7 @@
 use bzip2::read::BzDecoder;
-use log::{debug, info, warn};
+use log::{debug, info, logger, trace, warn};
 use parse_wiki_text::{Configuration, Node};
+use std::env;
 use std::fs::File;
 use std::io::{BufReader, Read};
 use wiki_extractor::output::output_json::OutputJson;
@@ -13,6 +14,9 @@ use wiki_extractor::parser::template_parser::parse_template;
 use wiki_extractor::wiki_page_iterator::WikiPageIterator;
 
 fn main() {
+    env::set_var("RUST_LOG", "info");
+    env_logger::init();
+
     let path = "/Users/johtani/tmp/wiki/jawiki-latest-pages-articles.xml.bz2";
     //without extension
     let output_path = "./test_dir/output";
@@ -107,7 +111,7 @@ fn main() {
                     }
                     //
                     // Node::DefinitionList { .. } => {
-                    //     debug!("あ    {:?}", node);
+                    //     trace!("あ    {:?}", node);
                     // }
                     // // TODO Need extracte cells
                     // Node::Table { .. } => {}
@@ -131,14 +135,14 @@ fn main() {
                     Node::Italic { .. } => {}
                     Node::Comment { .. } => {}
                     _ => {
-                        debug!("あ    {:?}", node);
+                        trace!("あ    {:?}", node);
                     }
                 }
             }
 
             if result.warnings.is_empty() == false {
                 for warning in result.warnings {
-                    warn!(
+                    debug!(
                         "[WARN] {} start:{} - end:{}",
                         warning.message, warning.start, warning.end
                     );
@@ -161,15 +165,15 @@ fn main() {
 
 // for test
 fn print_doc(doc: &Document) {
-    debug!(
+    trace!(
         "# of sections & contents. [{}] = [{}]",
         doc.headings.len(),
         doc.contents.len()
     );
-    debug!("Page::id  {}", doc.id);
-    debug!("Page::title  {}", doc.title);
-    debug!("Content \n{}", doc.contents.join("\n"));
-    debug!("Categories \n{}", doc.categories.join("\n"));
+    trace!("Page::id  {}", doc.id);
+    trace!("Page::title  {}", doc.title);
+    trace!("Content \n{}", doc.contents.join("\n"));
+    trace!("Categories \n{}", doc.categories.join("\n"));
     //debug!("Images {:?}", doc.images);
     //debug!("Links {:?}", doc.links)
 }
