@@ -48,7 +48,9 @@ pub fn parse_text(nodes: &Vec<Node>) -> Text {
     return if link_str.len() > 0 {
         Text::LinkText {
             text: str,
-            link: Link::Link { target: link_str },
+            link: Link::Link {
+                link_target: link_str,
+            },
         }
     } else {
         Text::Text { text: str }
@@ -75,7 +77,7 @@ pub fn extract_link_text(target: &str, nodes: &Vec<Node>) -> Text {
     return Text::LinkText {
         text: parse_text_only(nodes),
         link: Link::Link {
-            target: target.to_string(),
+            link_target: target.to_string(),
         },
     };
 }
@@ -93,14 +95,14 @@ pub fn extract_external_link_text(nodes: &Vec<Node>) -> Text {
         return Text::LinkText {
             text: link_text[0].to_string(),
             link: Link::ExternalLink {
-                target: link_text[0].to_string(),
+                link_target: link_text[0].to_string(),
             },
         };
     } else {
         return Text::LinkText {
             text: link_text[1].to_string(),
             link: Link::ExternalLink {
-                target: link_text[0].to_string(),
+                link_target: link_text[0].to_string(),
             },
         };
     }

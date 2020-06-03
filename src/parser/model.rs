@@ -44,9 +44,16 @@ pub struct Image {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(untagged)]
 pub enum Text {
-    LinkText { text: String, link: Link },
-    Text { text: String },
+    LinkText {
+        text: String,
+        #[serde(flatten)]
+        link: Link,
+    },
+    Text {
+        text: String,
+    },
 }
 
 impl Text {
@@ -59,7 +66,8 @@ impl Text {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(untagged)]
 pub enum Link {
-    ExternalLink { target: String },
-    Link { target: String },
+    ExternalLink { link_target: String },
+    Link { link_target: String },
 }

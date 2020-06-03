@@ -17,7 +17,8 @@ fn main() {
     env::set_var("RUST_LOG", "info");
     env_logger::init();
 
-    let path = "/Users/johtani/tmp/wiki/jawiki-latest-pages-articles.xml.bz2";
+    //let path = "/Users/johtani/tmp/wiki/jawiki-latest-pages-articles.xml.bz2";
+    let path = "/Users/johtani/tmp/wiki/sample_bz2.xml.bz2";
     //without extension
     let output_path = "./test_dir/output";
     let file = File::open(path).unwrap();
@@ -29,6 +30,7 @@ fn main() {
     let _xml_parser = WikiPageIterator::new(buf);
 
     for page in _xml_parser {
+        // TODO should support output meta flag?
         if !page.meta {
             info!(
                 "Id[{}] - Title:[{}] - Timestamp:[{}] - meta?:[{}]",
