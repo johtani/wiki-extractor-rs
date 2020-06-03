@@ -1,4 +1,5 @@
 use bzip2::read::BzDecoder;
+use log::{debug, info, warn};
 use parse_wiki_text::{Configuration, Node};
 use std::fs::File;
 use std::io::{BufReader, Read};
@@ -12,20 +13,20 @@ use wiki_extractor::parser::template_parser::parse_template;
 use wiki_extractor::wiki_page_iterator::WikiPageIterator;
 
 fn main() {
-    let path = "/Users/johtani/tmp/wiki/sample_bz2.xml.bz2";
+    let path = "/Users/johtani/tmp/wiki/jawiki-latest-pages-articles.xml.bz2";
     //without extension
     let output_path = "./test_dir/output";
     let file = File::open(path).unwrap();
     let buf = BzDecoder::new(file);
     //let buf = BufReader::new(file);
-    let mut output = OutputJson::new(output_path, 100);
+    let mut output = OutputJson::new(output_path, 10000);
 
     //TODO need a flag to skip Wikipedia special page that starts "Wikipedia:" in title.
     let _xml_parser = WikiPageIterator::new(buf);
 
     for page in _xml_parser {
         if !page.meta {
-            println!(
+            info!(
                 "Id[{}] - Title:[{}] - Timestamp:[{}] - meta?:[{}]",
                 page.id, page.title, page.timestamp, page.meta
             );
@@ -106,7 +107,7 @@ fn main() {
                     }
                     //
                     // Node::DefinitionList { .. } => {
-                    //     println!("あ    {:?}", node);
+                    //     debug!("あ    {:?}", node);
                     // }
                     // // TODO Need extracte cells
                     // Node::Table { .. } => {}
@@ -130,14 +131,14 @@ fn main() {
                     Node::Italic { .. } => {}
                     Node::Comment { .. } => {}
                     _ => {
-                        println!("あ    {:?}", node);
+                        debug!("あ    {:?}", node);
                     }
                 }
             }
 
             if result.warnings.is_empty() == false {
                 for warning in result.warnings {
-                    println!(
+                    warn!(
                         "[WARN] {} start:{} - end:{}",
                         warning.message, warning.start, warning.end
                     );
@@ -146,31 +147,31 @@ fn main() {
 
             doc.contents.push(page_content.to_string());
             output.output(&doc);
-            print_doc(&doc);
+        //print_doc(&doc);
         } else {
-            println!(
+            info!(
                 "Skip : Id[{}] - Title:[{}] - Timestamp:[{}] - meta?:[{}]",
                 page.id, page.title, page.timestamp, page.meta
             );
         }
     }
     output.flush();
-    println!("Finish wiki-extractor. ");
+    info!("Finish wiki-extractor. ");
 }
 
 // for test
 fn print_doc(doc: &Document) {
-    println!(
+    debug!(
         "# of sections & contents. [{}] = [{}]",
         doc.headings.len(),
         doc.contents.len()
     );
-    println!("Page::id  {}", doc.id);
-    println!("Page::title  {}", doc.title);
-    println!("Content \n{}", doc.contents.join("\n"));
-    println!("Categories \n{}", doc.categories.join("\n"));
-    //println!("Images {:?}", doc.images);
-    //println!("Links {:?}", doc.links)
+    debug!("Page::id  {}", doc.id);
+    debug!("Page::title  {}", doc.title);
+    debug!("Content \n{}", doc.contents.join("\n"));
+    debug!("Categories \n{}", doc.categories.join("\n"));
+    //debug!("Images {:?}", doc.images);
+    //debug!("Links {:?}", doc.links)
 }
 
 fn add_heading(heading: &str, page_content: &mut String, doc: &mut Document) {

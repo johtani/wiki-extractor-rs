@@ -1,3 +1,4 @@
+use log::error;
 use std::io::Read;
 use xml::reader::XmlEvent;
 use xml::EventReader;
@@ -62,7 +63,7 @@ impl<R: Read> Iterator for WikiPageIterator<R> {
                         "timestamp" => self.tag = ElementType::Timestamp,
                         _ => self.tag = ElementType::None,
                     }
-                    //println!("tag:{} ", name.local_name);
+                    //debug!("tag:{} ", name.local_name);
                 }
                 Ok(XmlEvent::Characters(data)) => {
                     match self.tag {
@@ -78,7 +79,7 @@ impl<R: Read> Iterator for WikiPageIterator<R> {
                         ElementType::Timestamp => self.timestamp = Some(data.to_string()),
                         ElementType::Text => self.content = Some(data.to_string()),
                     }
-                    //println!("data:{} ", data.to_string);
+                    //debug!("data:{} ", data.to_string);
                 }
                 Ok(XmlEvent::EndElement { name }) => match name.local_name.as_str() {
                     "page" => {
@@ -103,7 +104,7 @@ impl<R: Read> Iterator for WikiPageIterator<R> {
                     break;
                 }
                 Err(e) => {
-                    println!("Error: {}", e);
+                    error!("Error: {}", e);
                     break;
                 }
                 _ => {}

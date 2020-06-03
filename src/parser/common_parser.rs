@@ -65,7 +65,6 @@ pub fn extract_image(target: &str, text: &Vec<Node>) -> Image {
         target_type: ImageType::from_str(targets[0].as_str()).unwrap(),
         text: parse_text(text),
     };
-    //println!("い {:?}", image);
     return image;
 }
 
