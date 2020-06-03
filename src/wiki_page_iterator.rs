@@ -1,4 +1,4 @@
-use log::error;
+use log::{debug, error};
 use std::io::Read;
 use xml::reader::XmlEvent;
 use xml::EventReader;
@@ -84,11 +84,15 @@ impl<R: Read> Iterator for WikiPageIterator<R> {
                 Ok(XmlEvent::EndElement { name }) => match name.local_name.as_str() {
                     "page" => {
                         let title = self.title.take().unwrap();
+                        debug!("Title is [{}]", title.to_string());
                         let meta = title.starts_with("Wikipedia:");
                         let page = Page {
                             id: self.id.take().unwrap(),
                             title,
-                            raw_content: self.content.take().unwrap(),
+                            raw_content: match self.content {
+                                None => String::new(),
+                                Some(_) => self.contentself.content.take().unwrap(),
+                            },
                             revision_id: self.revision_id.take().unwrap(),
                             timestamp: self.timestamp.take().unwrap(),
                             meta,

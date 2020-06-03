@@ -43,6 +43,14 @@ pub fn parse_items(items: Vec<ListItem>, doc: &mut Document, indent: u8) -> Vec<
                         parsed_item.push_str(template.as_str());
                     }
                 }
+                // TODO maybe NO-OP
+                Node::StartTag { .. } => {}
+                Node::EndTag { .. } => {}
+                //NO-OP
+                Node::Bold { .. } => {}
+                Node::BoldItalic { .. } => {}
+                Node::Italic { .. } => {}
+                Node::Comment { .. } => {}
                 _ => {
                     trace!("ぶ    {:?}", node);
                 }
@@ -89,6 +97,14 @@ pub fn parse_order_items(items: Vec<ListItem>, doc: &mut Document, indent: u8) -
                         parsed_item.push_str(template.as_str());
                     }
                 }
+                // TODO maybe NO-OP
+                Node::StartTag { .. } => {}
+                Node::EndTag { .. } => {}
+                //NO-OP
+                Node::Bold { .. } => {}
+                Node::BoldItalic { .. } => {}
+                Node::Italic { .. } => {}
+                Node::Comment { .. } => {}
                 _ => {
                     trace!("り    {:?}", node);
                 }
@@ -155,6 +171,14 @@ pub fn parse_definition_items(
                         parsed_item.push_str(template.as_str());
                     }
                 }
+                // TODO maybe NO-OP
+                Node::StartTag { .. } => {}
+                Node::EndTag { .. } => {}
+                //NO-OP
+                Node::Bold { .. } => {}
+                Node::BoldItalic { .. } => {}
+                Node::Italic { .. } => {}
+                Node::Comment { .. } => {}
                 _ => {
                     trace!("で    {:?}", node);
                 }

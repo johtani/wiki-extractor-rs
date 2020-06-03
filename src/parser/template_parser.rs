@@ -44,11 +44,14 @@ pub fn parse_template(name: &Vec<Node>, parameters: &Vec<Parameter>) -> Option<S
 }
 
 pub fn get_lang_template_text(nodes: &Vec<Parameter>) -> String {
-    let str = if nodes.len() >= 2 {
+    let len = nodes.len();
+    let str = if len >= 2 {
         parse_text_only(&nodes.get(1).unwrap().value)
-    } else {
+    } else if len == 1 {
         parse_text_only(&nodes.get(0).unwrap().value)
-        //panic!(format!("Unexpected value... {:?}", nodes));
+    } else {
+        debug!("[WARN]Template param is 0. Unexpected value... {:?}", nodes);
+        String::new()
     };
     return str;
 }
@@ -57,7 +60,8 @@ pub fn get_temporary_link_template_text(nodes: &Vec<Parameter>) -> String {
     let str = if nodes.len() > 0 {
         parse_text_only(&nodes.get(0).unwrap().value)
     } else {
-        panic!(format!("Unexpected value... {:?}", nodes));
+        debug!("[WARN]Template param is 0. Unexpected value... {:?}", nodes);
+        String::new()
     };
     return str;
 }

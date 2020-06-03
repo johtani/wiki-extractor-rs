@@ -19,8 +19,8 @@ fn main() {
     }
     env_logger::init();
 
-    //let path = "/Users/johtani/tmp/wiki/jawiki-latest-pages-articles.xml.bz2";
-    let path = "/Users/johtani/tmp/wiki/sample_bz2.xml.bz2";
+    let path = "/Users/johtani/tmp/wiki/jawiki-latest-pages-articles.xml.bz2";
+    //let path = "/Users/johtani/tmp/wiki/sample_bz2.xml.bz2";
     //without extension
     let output_path = "./test_dir/output";
     let file = File::open(path).unwrap();
