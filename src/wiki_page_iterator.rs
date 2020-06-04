@@ -91,7 +91,7 @@ impl<R: Read> Iterator for WikiPageIterator<R> {
                             title,
                             raw_content: match self.content {
                                 None => String::new(),
-                                Some(_) => self.contentself.content.take().unwrap(),
+                                Some(_) => self.content.take().unwrap(),
                             },
                             revision_id: self.revision_id.take().unwrap(),
                             timestamp: self.timestamp.take().unwrap(),

@@ -13,16 +13,27 @@ use wiki_extractor::parser::model::Document;
 use wiki_extractor::parser::template_parser::parse_template;
 use wiki_extractor::wiki_page_iterator::WikiPageIterator;
 
+fn parse_config(args: &[String]) -> (&str, &str) {
+    let query = &args[1];
+    let filename = &args[2];
+
+    (query, filename)
+}
 fn main() {
     if env::var("RUST_LOG").is_err() {
         env::set_var("RUST_LOG", "info");
     }
     env_logger::init();
+    let args: Vec<String> = env::args().collect();
 
-    let path = "/Users/johtani/tmp/wiki/jawiki-latest-pages-articles.xml.bz2";
-    //let path = "/Users/johtani/tmp/wiki/sample_bz2.xml.bz2";
-    //without extension
-    let output_path = "./test_dir/output";
+    let (path, output_path) = parse_config(&args);
+
+    parse_wiki(path, output_path);
+
+    info!("Finish wiki-extractor. ");
+}
+
+fn parse_wiki(path: &str, output_path: &str) {
     let file = File::open(path).unwrap();
     let buf = BzDecoder::new(file);
     //let buf = BufReader::new(file);
@@ -52,7 +63,6 @@ fn main() {
                 images: vec![],
                 links: vec![],
             };
-            add_heading(&page.title, &mut page_content, &mut doc);
 
             for node in result.nodes {
                 //match node {}
@@ -166,7 +176,6 @@ fn main() {
         }
     }
     output.flush();
-    info!("Finish wiki-extractor. ");
 }
 
 // for test

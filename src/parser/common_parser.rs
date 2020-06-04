@@ -59,7 +59,7 @@ pub fn parse_text(nodes: &Vec<Node>) -> Text {
 
 // parse image tag info
 pub fn extract_image(target: &str, text: &Vec<Node>) -> Image {
-    let targets: Vec<String> = target.split(":").map(|e| e.to_string()).collect();
+    let targets: Vec<String> = target.splitn(2, ":").map(|e| e.to_string()).collect();
     if targets.len() != 2 {
         panic!(format!("Not expected Image data... {} ", target));
     }
