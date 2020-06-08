@@ -14,6 +14,8 @@ pub struct Document {
     pub headings: Vec<String>,
     pub images: Vec<Image>,
     pub links: Vec<Text>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub redirect_to: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

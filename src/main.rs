@@ -66,6 +66,7 @@ fn parse_wiki(path: &str, output_path: &str) {
                 headings: vec![],
                 images: vec![],
                 links: vec![],
+                redirect_to: None,
             };
 
             for node in result.nodes {
@@ -132,6 +133,9 @@ fn parse_wiki(path: &str, output_path: &str) {
                             page_content.push_str(template.as_str());
                         }
                     }
+                    Node::Redirect { target, .. } => {
+                        doc.redirect_to = Some(target.to_string());
+                    }
 
                     // // TODO Need extracte cells
                     // Node::Table { .. } => {}
@@ -139,7 +143,7 @@ fn parse_wiki(path: &str, output_path: &str) {
                     // Node::Tag { .. } => {}
                     //
                     // // TODO template combination?
-                    // Node::Redirect { .. } => {}
+
                     // Node::Parameter { .. } => {}
                     // //TODO
                     // Node::HorizontalDivider { .. } => {}
@@ -169,7 +173,9 @@ fn parse_wiki(path: &str, output_path: &str) {
                 }
             }
 
-            doc.contents.push(page_content.to_string());
+            if page_content.is_empty() == false && doc.contents.len() > 0 {
+                doc.contents.push(page_content.to_string());
+            }
             output.output(&doc);
         //print_doc(&doc);
         } else {
