@@ -8,6 +8,7 @@ pub struct Document {
     pub title: String,
     pub timestamp: String,
     pub revision_id: String,
+    pub url: String,
     pub contents: Vec<String>,
     pub categories: Vec<String>,
     pub headings: Vec<String>,

@@ -57,6 +57,10 @@ fn parse_wiki(path: &str, output_path: &str) {
                 title: page.title.to_string(),
                 timestamp: page.timestamp.to_string(),
                 revision_id: page.revision_id.to_string(),
+                url: format!(
+                    "https://ja.wikipedia.org/wiki?curid={}",
+                    page.id.to_string()
+                ),
                 contents: vec![],
                 categories: vec![],
                 headings: vec![],
