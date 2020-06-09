@@ -4,6 +4,7 @@ use parse_wiki_text::{Configuration, Node};
 use std::env;
 use std::fs::File;
 use std::io::{BufReader, Read};
+use wiki_extractor::create_ja_config;
 use wiki_extractor::output::output_json::OutputJson;
 use wiki_extractor::parser::common_parser::{
     extract_external_link_text, extract_heading_text, extract_image, extract_link_text,
@@ -50,7 +51,7 @@ fn parse_wiki(path: &str, output_path: &str) {
                 page.id, page.title, page.timestamp, page.meta
             );
 
-            let result = Configuration::default().parse(page.raw_content.as_str());
+            let result = create_ja_config().parse(page.raw_content.as_str());
             let mut page_content = String::new();
             let mut doc: Document = Document {
                 id: page.id.to_string(),

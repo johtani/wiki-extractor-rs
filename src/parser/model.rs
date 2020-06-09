@@ -31,6 +31,8 @@ impl FromStr for ImageType {
         match s.to_ascii_lowercase().as_str() {
             "file" => Ok(ImageType::File),
             "image" => Ok(ImageType::Image),
+            "ファイル" => Ok(ImageType::File),
+            "画像" => Ok(ImageType::Image),
             _ => {
                 warn!("Unexpected Image Type: [{}]", s);
                 Err(())

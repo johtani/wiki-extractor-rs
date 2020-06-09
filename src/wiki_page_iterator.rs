@@ -85,8 +85,11 @@ impl<R: Read> Iterator for WikiPageIterator<R> {
                     "page" => {
                         let title = self.title.take().unwrap();
                         debug!("Title is [{}]", title.to_string());
-                        let meta =
-                            title.starts_with("Wikipedia:") || title.starts_with("MediaWiki:");
+                        // TODO How to handle these data?
+                        let meta = title.starts_with("Wikipedia:")
+                            || title.starts_with("MediaWiki:")
+                            || title.starts_with("Template:")
+                            || title.starts_with("Category:");
                         let page = Page {
                             id: self.id.take().unwrap(),
                             title,
