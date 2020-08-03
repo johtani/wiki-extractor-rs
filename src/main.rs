@@ -4,6 +4,7 @@ use parse_wiki_text::{Configuration, Node};
 use std::env;
 use std::fs::File;
 use std::io::{BufReader, Read};
+use std::path::Path;
 use wiki_extractor::create_ja_config;
 use wiki_extractor::output::output_json::OutputJson;
 use wiki_extractor::parser::common_parser::{
@@ -15,10 +16,14 @@ use wiki_extractor::parser::template_parser::parse_template;
 use wiki_extractor::wiki_page_iterator::WikiPageIterator;
 
 fn parse_config(args: &[String]) -> (&str, &str) {
-    let query = &args[1];
-    let filename = &args[2];
-
-    (query, filename)
+    let input_file = &args[1];
+    let output_prefix = &args[2];
+    let input_path = Path::new(input_file);
+    if input_path.is_file() == false {
+        warn!("First argument should be file path.");
+        panic!("First argument should be file path.");
+    }
+    (input_file, output_prefix)
 }
 fn main() {
     if env::var("RUST_LOG").is_err() {
